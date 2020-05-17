@@ -1,5 +1,12 @@
 local tag = "ECNameTags"
 
+--[[
+TODO:
+-- Settings in chatbox
+-- Allow for custom order of things above players head (health, name, usergroup prefix, title, armor, job/team)
+-- Find out how to remove the default darkrp nametags
+]]--
+
 local EC_NT_OFFSET = CreateClientConVar("easychat_nt_offset", "18", true, false, "How far away from the player should the nametag display")
 local EC_NT_ME = CreateClientConVar("easychat_nt_draw_me", "1", true, false, "Should we draw our own nametag")
 local EC_NT_FONT_SIZE = CreateClientConVar("easychat_nt_font_size", "100", true, false, "Size of the font used in nametags")
