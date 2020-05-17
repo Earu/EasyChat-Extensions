@@ -1,3 +1,5 @@
+local tag = "ECTargetID"
+
 local default_color = Color(68, 112, 146, 255)
 local black_color = Color(0, 0, 0, 255)
 
@@ -29,7 +31,7 @@ local function get_vehicle_driver(vehicle)
 	end
 end
 
-local hud_font, hud_shadow_font = "TargetIDFont", "TargetIDShadowFont"
+local hud_font, hud_shadow_font = "ECTargetIDFont", "ECTargetIDShadowFont"
 surface.CreateFont(hud_font, {
 	font = "Tahoma",
 	size = 25,
@@ -47,7 +49,7 @@ surface.CreateFont(hud_shadow_font, {
 })
 
 local function cache_nick(ply)
-	return ec_markup.CachePlayer("TargetID", ply, function()
+	return ec_markup.CachePlayer(tag, ply, function()
 		return ec_markup.AdvancedParse(ply:Nick(), {
 			shadow_intensity = 2,
 			nick = true,
@@ -123,7 +125,7 @@ local function draw_targetid(x, y, ent)
 	end
 end
 
-hook.Add("HUDDrawTargetID", "EasyChatTargetID", function()
+hook.Add("HUDDrawTargetID", tag, function()
 	local x, y = gui.MouseX(), gui.MouseY()
 	local me = LocalPlayer()
 	local ent = (me:Alive() and me:GetEyeTrace() or default_trace()).Entity
