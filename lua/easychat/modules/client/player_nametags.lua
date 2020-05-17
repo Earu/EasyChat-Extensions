@@ -1,4 +1,4 @@
-local tag = "NameTags"
+local tag = "ECNameTags"
 
 local EC_NT_OFFSET = CreateClientConVar("easychat_nt_offset", "18", true, false, "How far away from the player should the nametag display")
 local EC_NT_ME = CreateClientConVar("easychat_nt_draw_me", "1", true, false, "Should we draw our own nametag")
@@ -6,8 +6,9 @@ local EC_NT_FONT_SIZE = CreateClientConVar("easychat_nt_font_size", "100", true,
 local EC_NT_FONT_NAME = CreateClientConVar("easychat_nt_font_name", "Tahoma", true, false, "The font to use for nametags")
 local EC_NT_FONT_WEIGHT = CreateClientConVar("easychat_nt_font_weight", "880", true, false, "How bold should the nametags font be")
 
+local nt_font, nt_shadow_font = "ECNameTagFont", "ECNameTagShadowFont"
 local function update_fonts()
-	surface.CreateFont("NameTagFont", {
+	surface.CreateFont(nt_font, {
 		font = EC_NT_FONT_NAME:GetString(),
 		extended = true,
 		size = EC_NT_FONT_SIZE:GetInt(),
@@ -15,7 +16,7 @@ local function update_fonts()
 		additive = false,
 	})
 
-	surface.CreateFont("NameTagShadowFont", {
+	surface.CreateFont(nt_shadow_font, {
 		font = EC_NT_FONT_NAME:GetString(),
 		extended = true,
 		size = EC_NT_FONT_SIZE:GetInt(),
@@ -79,8 +80,8 @@ local function draw_player(ply)
 		return ec_markup.AdvancedParse(nick, {
 			nick = true,
 			default_color = team_col,
-			default_font = "NameTagFont",
-			default_shadow_font = "NameTagShadowFont",
+			default_font = nt_font,
+			default_shadow_font = nt_shadow_font,
 			shadow_intensity = 1,
 		})
 	end)
