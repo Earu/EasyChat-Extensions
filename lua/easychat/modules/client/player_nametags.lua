@@ -7,11 +7,30 @@ TODO:
 -- Find out how to remove the default darkrp nametags
 ]]--
 
+local EC_NT_ENABLE = CreateClientConVar("easychat_nt_enable", "1", true, false, "Enable nametags")
 local EC_NT_OFFSET = CreateClientConVar("easychat_nt_offset", "18", true, false, "How far away from the player should the nametag display")
-local EC_NT_ME = CreateClientConVar("easychat_nt_draw_me", "1", true, false, "Should we draw our own nametag")
+local EC_NT_ME = CreateClientConVar("easychat_nt_draw_me", "0", true, false, "Should we draw our own nametag")
 local EC_NT_FONT_SIZE = CreateClientConVar("easychat_nt_font_size", "100", true, false, "Size of the font used in nametags")
 local EC_NT_FONT_NAME = CreateClientConVar("easychat_nt_font_name", "Tahoma", true, false, "The font to use for nametags")
 local EC_NT_FONT_WEIGHT = CreateClientConVar("easychat_nt_font_weight", "880", true, false, "How bold should the nametags font be")
+
+-- settings
+do
+	local settings = EasyChat.Settings
+	local category_name = "Nametags"
+
+	settings:AddCategory(category_name)
+
+	settings:AddConvarSetting(category_name, "boolean", EC_NT_ENABLE, "Enable nametags")
+	settings:AddConvarSetting(category_name, "boolean", EC_NT_ME, "Draw your own nametag")
+
+	settings:AddSpacer(category_name)
+
+	settings:AddConvarSetting(category_name, "number", EC_NT_OFFSET, "Offset to Player Head", 100, 0)
+	settings:AddConvarSetting(category_name, "string", EC_NT_FONT_NAME, "Font")
+	settings:AddConvarSetting(category_name, "number", EC_NT_FONT_SIZE, "Font Size", 1000, 50)
+	settings:AddConvarSetting(category_name, "number", EC_NT_FONT_WEIGHT, "Font Weight", 1300, 300)
+end
 
 local nt_font, nt_shadow_font = "ECNameTagFont", "ECNameTagShadowFont"
 local function update_fonts()
@@ -97,6 +116,8 @@ local function draw_player(ply)
 end
 
 hook.Add("PostDrawTranslucentRenderables", tag, function()
+	if not EC_NT_ENABLE:GetBool() then return end
+
 	local lp = LocalPlayer()
 	for _, ply in ipairs(player_GetAll()) do
 		if ply ~= lp or (ply == lp and EC_NT_ME:GetBool()) then
