@@ -13,6 +13,7 @@ local EC_NT_ME = CreateClientConVar("easychat_nt_draw_me", "0", true, false, "Sh
 local EC_NT_FONT_SIZE = CreateClientConVar("easychat_nt_font_size", "100", true, false, "Size of the font used in nametags")
 local EC_NT_FONT_NAME = CreateClientConVar("easychat_nt_font_name", "Tahoma", true, false, "The font to use for nametags")
 local EC_NT_FONT_WEIGHT = CreateClientConVar("easychat_nt_font_weight", "880", true, false, "How bold should the nametags font be")
+local EC_NT_MAX_DIST = CreateClientConVar("easychat_nt_max_distance", "1000", true, false, "How far away should the nametags render")
 
 -- settings
 do
@@ -26,6 +27,7 @@ do
 
 	settings:AddSpacer(category_name)
 
+	settings:AddConvarSetting(category_name, "number", EC_NT_MAX_DIST, "Maximum Distance")
 	settings:AddConvarSetting(category_name, "number", EC_NT_OFFSET, "Offset to Player Head", 100, 0)
 	settings:AddConvarSetting(category_name, "string", EC_NT_FONT_NAME, "Font")
 	settings:AddConvarSetting(category_name, "number", EC_NT_FONT_SIZE, "Font Size", 1000, 50)
@@ -37,16 +39,16 @@ local function update_fonts()
 	surface.CreateFont(nt_font, {
 		font = EC_NT_FONT_NAME:GetString(),
 		extended = true,
-		size = EC_NT_FONT_SIZE:GetInt(),
-		weight = EC_NT_FONT_WEIGHT:GetInt(),
+		size = math.Clamp(EC_NT_FONT_SIZE:GetInt(), 50 ,1000),
+		weight = math.Clamp(EC_NT_FONT_WEIGHT:GetInt(), 300, 1300),
 		additive = false,
 	})
 
 	surface.CreateFont(nt_shadow_font, {
 		font = EC_NT_FONT_NAME:GetString(),
 		extended = true,
-		size = EC_NT_FONT_SIZE:GetInt(),
-		weight = EC_NT_FONT_WEIGHT:GetInt(),
+		size = math.Clamp(EC_NT_FONT_SIZE:GetInt(), 50 ,1000),
+		weight = math.Clamp(EC_NT_FONT_WEIGHT:GetInt(), 300, 1300),
 		blursize = 5,
 	})
 end
@@ -62,8 +64,9 @@ cvars.AddChangeCallback(EC_NT_FONT_NAME:GetName(), update_fonts, tag)
 cvars.AddChangeCallback(EC_NT_FONT_WEIGHT:GetName(), update_fonts, tag)
 
 -- actual drawing after this
-local player_GetAll, ipairs, LocalPlayer = _G.player.GetAll, _G.ipairs, _G.LocalPlayer
-local IsValid, EyeAngles, Vector = _G.IsValid, _G.EyeAngles, _G.Vector
+local ipairs, LocalPlayer, ents_FindInSphere = _G.ipairs, _G.LocalPlayer, _G.ents.FindInSphere
+local IsValid, EyeAngles, Vector, EyePos = _G.IsValid, _G.EyeAngles, _G.Vector, _G.EyePos
+local surface_SetAlphaMultiplier = _G.surface.SetAlphaMultiplier
 
 local cam_Start3D2D, cam_End3D2D = _G.cam.Start3D2D, _G.cam.End3D2D
 
@@ -118,16 +121,24 @@ end
 hook.Add("PostDrawTranslucentRenderables", tag, function()
 	if not EC_NT_ENABLE:GetBool() then return end
 
+	local max_dist = math.Clamp(EC_NT_MAX_DIST:GetInt(), 0, 2000)
 	local lp = LocalPlayer()
-	for _, ply in ipairs(player_GetAll()) do
-		if ply ~= lp or (ply == lp and EC_NT_ME:GetBool()) then
+	local eye_pos = EyePos()
+	local ents = ents_FindInSphere(eye_pos, max_dist)
+	for i = #ents, 1, -1 do
+		local ply = ents[i]
+		if ply:IsPlayer() and (ply ~= lp or (ply == lp and EC_NT_ME:GetBool())) then
 			local pos = get_overhead_pos(ply)
 			if pos then
+				local dist = pos:Distance(eye_pos)
+				local fraction = dist > max_dist / 2 and 1 - pos:Distance(eye_pos) / max_dist or 1
 				local ang = EyeAngles()
 				ang:RotateAroundAxis(ang:Right(), 90)
 				ang:RotateAroundAxis(ang:Up(), -90)
 				cam_Start3D2D(pos + ply:GetUp() * EC_NT_OFFSET:GetInt(), ang, 0.07)
+					surface_SetAlphaMultiplier(fraction)
 					draw_player(ply)
+					surface_SetAlphaMultiplier(1)
 				cam_End3D2D()
 			end
 		end
