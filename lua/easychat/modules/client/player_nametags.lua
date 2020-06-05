@@ -89,6 +89,7 @@ local function get_overhead_pos(ply)
 			if ply:GetBoneName(i):lower():find("head") then
 				pos = ply:GetBonePosition(i)
 				bone = i
+				break
 			end
 		end
 	end
